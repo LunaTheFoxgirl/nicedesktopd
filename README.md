@@ -16,11 +16,9 @@ Add `~/.config/nicewallpaperd.json` if it does not currently exist and add the f
 {
     "timeout": 20,
     "wallpapers": [
-        "/path/to/image1",
-        "/path/to/image2",
-        "/path/to/image3",
-        "/path/to/image4",
-        "/path/to/etc/etc",
+        "/path/to/foo",
+        "/path/to/bar",
+        "/path/to/etc/etc"
     ]
 }
 ```
