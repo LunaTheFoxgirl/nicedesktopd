@@ -28,6 +28,9 @@ The timeout variable is the time between updates in seconds.
 
 Replace the placeholders in the wallpapers section with the path to each file you want to cycle between.
 
+### NOTICE
+If you are running a unity desktop, the desktop might go to a state where it shows the stock background, setting legacy to `true` tends to fix this.
+
 ## DBus Documentation
 
 ### Basics
