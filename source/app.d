@@ -116,6 +116,7 @@ class Handlers {
 class Settings {
 	mixin JsonizeMe;
 
+	public @jsonize bool legacy;
 	public @jsonize int timeout;
 	public @jsonize string[] wallpapers;
 }
@@ -127,6 +128,7 @@ class Controller {
 	public int timeout = 5;
 
 	public int user_id;
+	public bool legacy;
 	public string home_root;
 
 	private Thread updater_thread;
@@ -169,6 +171,7 @@ class Controller {
 		Settings set = val.fromJSON!Settings();
 		this.timeout = set.timeout;
 		this.wallpapers = set.wallpapers;
+		this.legacy = set.legacy;
 		if (this.wallpapers.length > 0) SystemSetWallpaper(this.wallpapers[0]);
 		writeln("<Info> Settings loaded from ", this.home_root, "/.config/nicewallpaperd.json...");
 	}
@@ -242,6 +245,7 @@ class Controller {
 	}
 
 	string GetHomeDirectory() {
+		if (legacy) return "file://" ~ this.user_iface_prop.Get("org.freedesktop.Accounts.User", "HomeDirectory").to!string();
 		return this.user_iface_prop.Get("org.freedesktop.Accounts.User", "HomeDirectory").to!string();
 	}
 }
