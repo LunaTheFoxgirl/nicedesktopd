@@ -16,16 +16,16 @@ Add `~/.config/nicewallpaperd.json` if it does not currently exist and add the f
 {
     "timeout": 20,
     "wallpapers": [
-        "/path/to/image1",
-        "/path/to/image2",
-        "/path/to/image3",
-        "/path/to/image4",
-        "/path/to/etc/etc",
+        "/path/to/foo",
+        "/path/to/bar",
+        "/path/to/etc/etc"
     ]
 }
 ```
 
 The timeout variable is the time between updates in seconds.
+
+Replace the placeholders in the wallpapers section with the path to each file you want to cycle between.
 
 ## DBus Documentation
 
