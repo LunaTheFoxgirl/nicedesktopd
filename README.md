@@ -25,6 +25,8 @@ Add `~/.config/nicewallpaperd.json` if it does not currently exist and add the f
 
 The timeout variable is the time between updates in seconds.
 
+Replace the placeholders in the wallpapers section with the path to each file you want to cycle between.
+
 ## DBus Documentation
 
 ### Basics
