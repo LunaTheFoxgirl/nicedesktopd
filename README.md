@@ -26,3 +26,22 @@ Add `~/.config/nicewallpaperd.json` if it does not currently exist and add the f
 ```
 
 The timeout variable is the time between updates in seconds.
+
+## DBus Documentation
+
+### Basics
+The router is located at `dk.eclipsingr.nice`.
+
+The object path is `/wallpaper`, with interfaces in `dk.eclipsingr.nice.wallpaper`
+
+### Layout
+* `dk.eclipsingr.nice`
+    * `/wallpaper`
+        * `dk.eclipsingr.nice.wallpaper`
+            * `current()` - Gets current image used as wallpaper
+            * `list()` - Gets list of wallpapers cycled between
+            * `timeout()` - Gets the timeout between wallpaper advances in seconds.
+            * `next()` - Advances to next image.
+            * `previous()` - Goes to previous image.
+            * `set_advance_time(int seconds)` - Sets the timeout between wallpaper advances in seconds.
+            * `set_wallpaper_list(string[] wallpapers)` - Sets the list of wallpapers to cycle between.
