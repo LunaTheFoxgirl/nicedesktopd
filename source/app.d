@@ -63,6 +63,8 @@ class Handlers {
 		this.OnNextWallpaper += &controller.NextWallpaper;
 		this.OnPrevWallpaper += &controller.PreviousWallpaper;
 		this.OnSetWallpapers += &controller.SetWallpaperList;
+		this.OnSetAdvanceTime += &controller.SetAdvanceTime;
+		this.controller.Start();
 	}
 
 	public Event OnNextWallpaper = new Event();
@@ -88,10 +90,9 @@ class Handlers {
 		return this.controller.wallpapers;
 	}
 
-	public string set_advance_time(int hours, int minutes, int seconds) {
-		int result = (hours*60*60)+(minutes*60)+seconds;
+	public string set_advance_time(int seconds) {
 		try {
-			OnSetAdvanceTime(cast(void*)this, new SetWallpaperAdvanceEventArgs(result));
+			OnSetAdvanceTime(cast(void*)this, new SetWallpaperAdvanceEventArgs(seconds));
 			return "success";
 		} catch (Exception ex) {
 			return ex.message.text;
@@ -137,8 +138,11 @@ class Controller {
 		this.conn = connectToBus(DBusBusType.DBUS_BUS_SYSTEM);
 		this.user_iface = new PathIface(conn, "org.freedesktop.Accounts", "/org/freedesktop/Accounts/User"~this.user_id.text, "org.freedesktop.Accounts.User");
 		this.user_iface_prop = new PathIface(conn, "org.freedesktop.Accounts", "/org/freedesktop/Accounts/User"~this.user_id.text, "org.freedesktop.DBus.Properties");
-		this.ApplySettings();
 
+	}
+
+	void Start() {
+		this.ApplySettings();
 		this.updater_thread.start();
 	}
 
@@ -168,7 +172,6 @@ class Controller {
 	void UpdateLoop() {
 		while (!should_kill_thread) {
 			NextWallpaper(cast(void*)this, null);
-			SystemSetWallpaper(this.wallpapers[this.current_wallpaper]);
 			this.updater_thread.sleep(dur!"seconds"(timeout));
 		}
 	}
@@ -177,6 +180,7 @@ class Controller {
 		if (wallpapers.length == 0) return;
 		current_wallpaper++;
 		if (current_wallpaper >= wallpapers.length) current_wallpaper = 0;
+		SystemSetWallpaper(this.wallpapers[this.current_wallpaper]);
 		writeln("<INFO> Set wallpaper to ", current_wallpaper, " @", wallpapers[current_wallpaper], "...");
 	}
 
@@ -184,6 +188,7 @@ class Controller {
 		if (wallpapers.length == 0) return;
 		current_wallpaper--;
 		if (current_wallpaper < 0) current_wallpaper = cast(int)wallpapers.length-1;
+		SystemSetWallpaper(this.wallpapers[this.current_wallpaper]);
 		writeln("<INFO> Set wallpaper to ", current_wallpaper, " @", wallpapers[current_wallpaper], "...");
 	}
 
@@ -191,18 +196,24 @@ class Controller {
 		SetWallpaperEventArgs args = cast(SetWallpaperEventArgs)argz;
 		this.wallpapers = args.wallpapers;
 		this.current_wallpaper = 0;
-		this.updater_thread = new Thread(&UpdateLoop);
-		this.updater_thread.start();
+
+		//Save changes.
+		Save();
 	}
 
 	void SetAdvanceTime(void* sender, EventArgs argz) {
 		SetWallpaperAdvanceEventArgs args = cast(SetWallpaperAdvanceEventArgs)argz;
 		this.timeout = args.time;
+
+		//Save changes.
+		Save();
 	}
 
 	void SystemSetWallpaper(string wallpaper) {
 		// If no wallpapers are present, don't try setting nothing as a wallpaper.
 		if (wallpapers.length == 0) return;
+
+		//DBus set wallpaper
 		this.user_iface.SetBackgroundFile(wallpaper);
 
 		//GIO (GNOME Based) set wallpaper
@@ -214,6 +225,16 @@ class Controller {
 		}
 		s.apply();
 		s.sync();
+	}
+
+	void Save() {
+		File f = File(this.home_root~"/.config/nicewallpaperd.json", "w+");
+		Settings s = new Settings();
+		s.wallpapers = this.wallpapers;
+		s.timeout = this.timeout;
+		string st = toJSONString(s);
+		if (st != "") f.write(st);
+		writeln("<INFO> Saved changes to file... ");
 	}
 
 	string GetHomeDirectory() {
