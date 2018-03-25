@@ -1,0 +1,16 @@
+{
+	"name": "nicedesktopd",
+	"authors": [
+		"Clipsey"
+	],
+	"dependencies": {
+		"sharpevents": "~>1.0.1",
+		"syscall-d": "~>0.4.0",
+		"jsonizer": "~>0.7.4",
+		"gtk-d": "~>3.7.5",
+		"ddbus": "~>2.3.0"
+	},
+	"description": "An application that handles desktop wallpaper switching",
+	"copyright": "Copyright © 2018, Clipsey",
+	"license": "MIT"
+}

@@ -1,0 +1,11 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"ddbus": "2.3.0",
+		"dunit": "1.0.14",
+		"gtk-d": "3.7.5",
+		"jsonizer": "0.7.4",
+		"sharpevents": "1.0.1",
+		"syscall-d": "0.4.0"
+	}
+}
