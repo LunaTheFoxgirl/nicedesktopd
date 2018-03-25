@@ -90,6 +90,10 @@ class Handlers {
 		return this.controller.wallpapers;
 	}
 
+	public int timeout() {
+		return this.controller.timeout;
+	}
+
 	public string set_advance_time(int seconds) {
 		try {
 			OnSetAdvanceTime(cast(void*)this, new SetWallpaperAdvanceEventArgs(seconds));
