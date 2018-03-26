@@ -16,7 +16,7 @@ Add `~/.config/nicewallpaperd.json` if it does not currently exist and add the f
 {
 	"timeout": 20,
 	"legacy": false,
-	"option": 1,
+	"option": "Zoom",
 	"wallpapers": [
 		"/path/to/foo",
 		"/path/to/bar",
