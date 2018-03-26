@@ -36,11 +36,11 @@ If you are running a unity desktop, the desktop might go to a state where it sho
 ### Basics
 The router is located at `dk.eclipsingr.nice`.
 
-The object path is `/wallpaper`, with interfaces in `dk.eclipsingr.nice.wallpaper`
+The object path is `/dk/eclipsingr/nice/wallpaper`, with interfaces in `dk.eclipsingr.nice.wallpaper`
 
 ### Layout
 * `dk.eclipsingr.nice`
-    * `/wallpaper`
+    * `/dk/eclipsingr/nice/wallpaper`
         * `dk.eclipsingr.nice.wallpaper`
             * `current()` - Gets current image used as wallpaper
             * `list()` - Gets list of wallpapers cycled between
