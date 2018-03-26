@@ -16,6 +16,7 @@ Add `~/.config/nicewallpaperd.json` if it does not currently exist and add the f
 {
 	"timeout": 20,
 	"legacy": false,
+	"option": "Zoom",
 	"wallpapers": [
 		"/path/to/foo",
 		"/path/to/bar",
@@ -36,11 +37,11 @@ If you are running a unity desktop, the desktop might go to a state where it sho
 ### Basics
 The router is located at `dk.eclipsingr.nice`.
 
-The object path is `/wallpaper`, with interfaces in `dk.eclipsingr.nice.wallpaper`
+The object path is `/dk/eclipsingr/nice/wallpaper`, with interfaces in `dk.eclipsingr.nice.wallpaper`
 
 ### Layout
 * `dk.eclipsingr.nice`
-    * `/wallpaper`
+    * `/dk/eclipsingr/nice/wallpaper`
         * `dk.eclipsingr.nice.wallpaper`
             * `current()` - Gets current image used as wallpaper
             * `list()` - Gets list of wallpapers cycled between
@@ -48,4 +49,15 @@ The object path is `/wallpaper`, with interfaces in `dk.eclipsingr.nice.wallpape
             * `next()` - Advances to next image.
             * `previous()` - Goes to previous image.
             * `set_advance_time(int seconds)` - Sets the timeout between wallpaper advances in seconds.
+            * `set_wallpaper_option(int option)` - Sets the wallpaper option for display.
             * `set_wallpaper_list(string[] wallpapers)` - Sets the list of wallpapers to cycle between.
+### Wallpaper Options
+| Id | Option     | Output |
+| -- | ---------- | ------ |
+| 0  | None       | Displays no wallpaper. |
+| 1  | Wallpaper  | Displays wallpaper as infinite tiles in both directions. |
+| 2  | Centered   | Displays wallpaper centered on screen(s). |
+| 3  | Scaled     | Displays wallpaper scaled to fit the smallest screen. |
+| 4  | Streched   | Displays wallpaper stretched to fit the smallest screen. |
+| 5  | Zoom       | Displays wallpaper zoomed in so far that no black bars are present. |
+| 6  | Spanned    | Displays wallpaper spanned across all available screens. |
