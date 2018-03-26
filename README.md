@@ -14,13 +14,13 @@ Add `~/.config/nicewallpaperd.json` if it does not currently exist and add the f
 
 ```json
 {
-    "timeout": 20,
+	"timeout": 20,
 	"legacy": false,
-    "wallpapers": [
-        "/path/to/foo",
-        "/path/to/bar",
-        "/path/to/etc/etc"
-    ]
+	"wallpapers": [
+		"/path/to/foo",
+		"/path/to/bar",
+		"/path/to/etc/etc"
+	]
 }
 ```
 
