@@ -48,4 +48,15 @@ The object path is `/wallpaper`, with interfaces in `dk.eclipsingr.nice.wallpape
             * `next()` - Advances to next image.
             * `previous()` - Goes to previous image.
             * `set_advance_time(int seconds)` - Sets the timeout between wallpaper advances in seconds.
+            * `set_wallpaper_option(int option)` - Sets the wallpaper option for display.
             * `set_wallpaper_list(string[] wallpapers)` - Sets the list of wallpapers to cycle between.
+### Wallpaper Options
+| Id | Option     | Output |
+| -- | ---------- | ------ |
+| 0  | None       | Displays no wallpaper. |
+| 1  | Wallpaper  | Displays wallpaper as infinite tiles in both directions. |
+| 2  | Centered   | Displays wallpaper centered on screen(s). |
+| 3  | Scaled     | Displays wallpaper scaled to fit the smallest screen. |
+| 4  | Streched   | Displays wallpaper stretched to fit the smallest screen. |
+| 5  | Zoom       | Displays wallpaper zoomed in so far that no black bars are present. |
+| 6  | Spanned    | Displays wallpaper spanned across all available screens. |
