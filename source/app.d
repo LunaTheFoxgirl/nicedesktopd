@@ -14,8 +14,7 @@ import std.json;
 static import gio.Settings;
 static import std.file;
 
-void main()
-{
+void main() {
 	//Establish connection to DBus.
 	Connection conn = connectToBus();
 
@@ -209,28 +208,38 @@ class Controller {
 	}
 
 	void ApplySettings() {
+
+		// Get home directory.
 		this.home_root = GetHomeDirectory();
 
+		// Check if a settings file is present.
 		if (!std.file.exists(this.home_root~"/.config/nicewallpaperd.json"))
 		{
 			writeln("<Warn> No settings found in ", this.home_root, "/.config/nicewallpaperd.json!");
 			return;
 		}
+
+		// If there is, read the file.
 		File f = File(this.home_root~"/.config/nicewallpaperd.json", "r");
 		ubyte[] txt;
 		foreach(ubyte[] t; f.byChunk(4096)) {
 			txt ~= t;
 		}
 		f.close();
+
+		// Parse the JSON
 		JSONValue val = parseJSON(cast(string)txt);
-		
 		Settings set = val.fromJSON!Settings();
+
+		// Apply settings.
 		this.timeout = set.timeout;
 		this.wallpapers = set.wallpapers;
 		this.legacy = set.legacy;
 		this.w_option = set.option;
 		if (this.wallpapers.length > 0) SystemSetWallpaper(this.wallpapers[0]);
 		SystemSetOption(get_option(this.w_option));
+
+		// Logging.
 		writeln("<Info> Settings loaded from ", this.home_root, "/.config/nicewallpaperd.json...");
 	}
 
@@ -258,20 +267,34 @@ class Controller {
 	}
 
 	void NextWallpaper(void* sender, EventArgs args) {
+		// Escape if no wallpapers are present, then advance.
 		if (wallpapers.length == 0) return;
 		current_wallpaper++;
+
+		// Cap wallpaper selection.
 		if (current_wallpaper >= wallpapers.length) current_wallpaper = 0;
+
+		// Apply wallpaper setting.
 		SystemSetWallpaper(this.wallpapers[this.current_wallpaper]);
 		writeln("<INFO> Set wallpaper to ", current_wallpaper, " @", wallpapers[current_wallpaper], "...");
+
+		// Make sure that force_advance doesn't deadlock the program.
 		if (sender is null) force_advance();
 	}
 
 	void PreviousWallpaper(void* sender, EventArgs args) {
+		// Escape if no wallpapers are present, then advance.
 		if (wallpapers.length == 0) return;
 		current_wallpaper--;
+
+		// Cap wallpaper selection
 		if (current_wallpaper < 0) current_wallpaper = cast(int)wallpapers.length-1;
+		
+		// Apply wallpaper setting.
 		SystemSetWallpaper(this.wallpapers[this.current_wallpaper]);
 		writeln("<INFO> Set wallpaper to ", current_wallpaper, " @", wallpapers[current_wallpaper], "...");
+
+		// Make sure that force_advance doesn't deadlock the program.
 		if (sender is null) force_advance();
 	}
 
@@ -296,6 +319,7 @@ class Controller {
 
 		SystemSetWallpaper(this.wallpapers[this.current_wallpaper]);
 		force_advance();
+
 		//Save changes.
 		Save();
 	}
@@ -336,9 +360,8 @@ class Controller {
 		gio.Settings.Settings s = new gio.Settings.Settings("org.gnome.desktop.background");
 		s.setString("picture-uri", wallpaper);
 		s.reset("color-shading-type");
-		if (s.getString("picture-options") == "none") {
+		if (s.getString("picture-options") == "none")
 			s.reset("picture-options");
-		}
 		s.apply();
 		s.sync();
 	}
@@ -355,7 +378,11 @@ class Controller {
 	}
 
 	string GetHomeDirectory() {
-		if (legacy) return "file://" ~ this.user_iface_prop.Get("org.freedesktop.Accounts.User", "HomeDirectory").to!string();
+		// If legacy, return file://(path)
+		if (legacy) 
+			return "file://" ~ this.user_iface_prop.Get("org.freedesktop.Accounts.User", "HomeDirectory").to!string();
+
+		// Else, just return the path.
 		return this.user_iface_prop.Get("org.freedesktop.Accounts.User", "HomeDirectory").to!string();
 	}
 }
