@@ -27,7 +27,7 @@ void main()
 	Handlers handler = new Handlers(uid);
 
 	//Register methods
-	registerMethods(router, "/wallpaper", "dk.eclipsingr.nice.wallpaper", handler);
+	registerMethods(router, "/dk/eclipsingr/nice/wallpaper", "dk.eclipsingr.nice.wallpaper", handler);
 
 	//Register router and run loop.
 	writeln("<INFO> Starting from UID ", uid, "...");
@@ -47,6 +47,15 @@ class SetWallpaperEventArgs : EventArgs {
 	}
 }
 
+class SetWallpaperOptionsEventArgs : EventArgs {
+	public Options option;
+
+	this(Options option) {
+		this.option = option;
+	}
+}
+
+
 class SetWallpaperAdvanceEventArgs : EventArgs {
 	public int time;
 
@@ -64,6 +73,7 @@ class Handlers {
 		this.OnPrevWallpaper += &controller.PreviousWallpaper;
 		this.OnSetWallpapers += &controller.SetWallpaperList;
 		this.OnSetAdvanceTime += &controller.SetAdvanceTime;
+		this.OnSetWallpaperOptions += &controller.SetWallpaperOptions;
 		this.controller.Start();
 	}
 
@@ -71,14 +81,15 @@ class Handlers {
 	public Event OnPrevWallpaper = new Event();
 	public Event OnSetWallpapers = new Event();
 	public Event OnSetAdvanceTime = new Event();
+	public Event OnSetWallpaperOptions = new Event();
 
 	public string next() {
-		OnNextWallpaper(cast(void*)this, null);
+		OnNextWallpaper(null, null);
 		return current();
 	}
 
 	public string previous() {
-		OnPrevWallpaper(cast(void*)this, null);
+		OnPrevWallpaper(null, null);
 		return current();
 	}
 
@@ -99,6 +110,19 @@ class Handlers {
 			OnSetAdvanceTime(cast(void*)this, new SetWallpaperAdvanceEventArgs(seconds));
 			return "success";
 		} catch (Exception ex) {
+			writeln(ex);
+			return ex.message.text;
+		}
+	}
+
+	public string set_wallpaper_option(int option) {
+		try {
+			ubyte o = cast(ubyte)option;
+			if (o > 6) o = 7;
+			if (o < 0) o = 0;
+			OnSetWallpaperOptions(cast(void*)this, new SetWallpaperOptionsEventArgs(cast(Options)o));
+			return "success: " ~ get_option(cast(Options)o);
+		} catch (Exception ex) {
 			return ex.message.text;
 		}
 	}
@@ -113,11 +137,43 @@ class Handlers {
 	}
 }
 
+string get_option(Options o) {
+	switch (o) {
+		case Options.None:
+			return "none";
+		case Options.Zoom:
+			return "zoom";
+		case Options.Wallpaper:
+			return "wallpaper";
+		case Options.Stretched:
+			return "stretched";
+		case Options.Spanned:
+			return "spanned";
+		case Options.Scaled:
+			return "scaled";
+		case Options.Centered:
+			return "centered";
+		default:
+			return "none";
+	}
+}
+
+enum Options {
+	None = 0,
+	Wallpaper = 1,
+	Centered = 2,
+	Scaled = 3,
+	Stretched = 4,
+	Zoom = 5,
+	Spanned = 6
+}
+
 class Settings {
 	mixin JsonizeMe;
 
 	public @jsonize bool legacy;
 	public @jsonize int timeout;
+	public @jsonize Options option;
 	public @jsonize string[] wallpapers;
 }
 
@@ -130,6 +186,7 @@ class Controller {
 	public int user_id;
 	public bool legacy;
 	public string home_root;
+	public Options w_option;
 
 	private Thread updater_thread;
 	private bool should_kill_thread = false;
@@ -144,7 +201,6 @@ class Controller {
 		this.conn = connectToBus(DBusBusType.DBUS_BUS_SYSTEM);
 		this.user_iface = new PathIface(conn, "org.freedesktop.Accounts", "/org/freedesktop/Accounts/User"~this.user_id.text, "org.freedesktop.Accounts.User");
 		this.user_iface_prop = new PathIface(conn, "org.freedesktop.Accounts", "/org/freedesktop/Accounts/User"~this.user_id.text, "org.freedesktop.DBus.Properties");
-
 	}
 
 	void Start() {
@@ -176,11 +232,27 @@ class Controller {
 		writeln("<Info> Settings loaded from ", this.home_root, "/.config/nicewallpaperd.json...");
 	}
 
+	bool thread_killed = false;
 	void UpdateLoop() {
+		bool first_time = true;
 		while (!should_kill_thread) {
-			NextWallpaper(cast(void*)this, null);
-			this.updater_thread.sleep(dur!"seconds"(timeout));
+			// Just in case, quit the loop if the thread should be killed, and for some reason, the while loop derped.
+			if (should_kill_thread) break;
+
+			// First update wallpaper after the first has been shown.
+			if (!first_time) NextWallpaper(cast(void*)this, null);
+
+			// Sleep loop, so that a new wallpaper can be chosen.
+			int seconds = 0;
+			while (seconds < timeout && !should_kill_thread) {
+				this.updater_thread.sleep(dur!"seconds"(1));
+				seconds++;
+			}
+			first_time = false;
 		}
+
+		// Tell the rest of the program that the thread has been killed.
+		thread_killed = true;
 	}
 
 	void NextWallpaper(void* sender, EventArgs args) {
@@ -189,6 +261,7 @@ class Controller {
 		if (current_wallpaper >= wallpapers.length) current_wallpaper = 0;
 		SystemSetWallpaper(this.wallpapers[this.current_wallpaper]);
 		writeln("<INFO> Set wallpaper to ", current_wallpaper, " @", wallpapers[current_wallpaper], "...");
+		if (sender is null) force_advance();
 	}
 
 	void PreviousWallpaper(void* sender, EventArgs args) {
@@ -197,14 +270,40 @@ class Controller {
 		if (current_wallpaper < 0) current_wallpaper = cast(int)wallpapers.length-1;
 		SystemSetWallpaper(this.wallpapers[this.current_wallpaper]);
 		writeln("<INFO> Set wallpaper to ", current_wallpaper, " @", wallpapers[current_wallpaper], "...");
+		if (sender is null) force_advance();
+	}
+
+	void force_advance() {
+		should_kill_thread = true;
+		while (!thread_killed) {}
+		spawn_updater();
+	}
+
+	void spawn_updater() {
+		should_kill_thread = false;
+		thread_killed = false;
+		this.updater_thread = new Thread(&UpdateLoop);
+		this.updater_thread.start();
 	}
 
 	void SetWallpaperList(void* sender, EventArgs argz) {
 		SetWallpaperEventArgs args = cast(SetWallpaperEventArgs)argz;
+		if (args.wallpapers.length == 0) return;
 		this.wallpapers = args.wallpapers;
 		this.current_wallpaper = 0;
 
+		SystemSetWallpaper(this.wallpapers[this.current_wallpaper]);
+		force_advance();
 		//Save changes.
+		Save();
+	}
+
+	void SetWallpaperOptions(void* sender, EventArgs argz) {
+		SetWallpaperOptionsEventArgs args = cast(SetWallpaperOptionsEventArgs)argz;
+		this.w_option = args.option;
+
+		SystemSetOption(get_option(this.w_option));
+
 		Save();
 	}
 
@@ -214,6 +313,14 @@ class Controller {
 
 		//Save changes.
 		Save();
+	}
+
+	void SystemSetOption(string option) {
+		gio.Settings.Settings s = new gio.Settings.Settings("org.gnome.desktop.background");
+		s.setString("picture-options", option);
+		s.apply();
+		s.sync();
+		writeln("<INFO> Set wallpaper option to: ", option, "...");
 	}
 
 	void SystemSetWallpaper(string wallpaper) {
@@ -239,6 +346,7 @@ class Controller {
 		Settings s = new Settings();
 		s.wallpapers = this.wallpapers;
 		s.timeout = this.timeout;
+		s.option = this.w_option;
 		string st = toJSONString(s);
 		if (st != "") f.write(st);
 		writeln("<INFO> Saved changes to file... ");

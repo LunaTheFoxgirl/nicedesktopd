@@ -1,7 +1,7 @@
 {
 	"fileVersion": 1,
 	"versions": {
-		"ddbus": "2.3.0",
+		"ddbus": "~master",
 		"dunit": "1.0.14",
 		"gtk-d": "3.7.5",
 		"jsonizer": "0.7.4",
