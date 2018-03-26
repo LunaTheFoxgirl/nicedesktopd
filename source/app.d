@@ -228,7 +228,9 @@ class Controller {
 		this.timeout = set.timeout;
 		this.wallpapers = set.wallpapers;
 		this.legacy = set.legacy;
+		this.w_option = set.option;
 		if (this.wallpapers.length > 0) SystemSetWallpaper(this.wallpapers[0]);
+		SystemSetOption(get_option(this.w_option));
 		writeln("<Info> Settings loaded from ", this.home_root, "/.config/nicewallpaperd.json...");
 	}
 
