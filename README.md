@@ -16,18 +16,32 @@ Add `~/.config/nicewallpaperd.json` if it does not currently exist and add the f
 {
 	"timeout": 20,
 	"legacy": false,
-	"option": "Zoom",
+	"default_option": "Centered",
+	"use_clock_intervals": false,
 	"wallpapers": [
-		"/path/to/foo",
-		"/path/to/bar",
-		"/path/to/etc/etc"
+		{
+			"file": "/foo/bar.png",
+			"option": "Zoom",
+			"clock_offset": "00:00:00"
+		},
+		{
+			"file": "/baz/etc.png",
+			"option": "None",
+			"clock_offset": "02:00:00"
+		}
 	]
 }
 ```
 
 The timeout variable is the time between updates in seconds.
 
-Replace the placeholders in the wallpapers section with the path to each file you want to cycle between.
+Replace the placeholders in the wallpapers section with the path to each file you want to cycle between, which option you want set (look further down for a list of options) and what clock offset (HH:MM:SS) you want the image to display at, if use_clock_intervals is on.
+
+If the wallpaper option is left out or set to none, default_option will be used instead.
+
+## Clock offset?
+nicedesktopd allows you to set an offset from midnight you want to wait before an image is allowed to be switched on, if the image is not allowed nicedesktopd will wait until it can. A low timeout value is recommended for this.
+
 
 ### NOTICE
 If you are running a unity desktop, the desktop might go to a state where it shows the stock background, setting legacy to `true` tends to fix this.
@@ -48,9 +62,11 @@ The object path is `/dk/eclipsingr/nice/wallpaper`, with interfaces in `dk.eclip
             * `timeout()` - Gets the timeout between wallpaper advances in seconds.
             * `next()` - Advances to next image.
             * `previous()` - Goes to previous image.
-            * `set_advance_time(int seconds)` - Sets the timeout between wallpaper advances in seconds.
-            * `set_wallpaper_option(int option)` - Sets the wallpaper option for display.
-            * `set_wallpaper_list(string[] wallpapers)` - Sets the list of wallpapers to cycle between.
+            * `set_update_time(int seconds)` - Sets the timeout between state updates within the application.
+            * `set_wallpaper_option(int option)` - Sets the default wallpaper option for display.
+            * `add_wallpaper(int option, string file, string time_offset)` - Adds the wallpaper to the list, if clock intervals are off, just set time_offset to 0.
+			* `remove_wallpaper(string file)` - Removes the wallpaper from the list.
+			* `clear_wallpapers()` - Clears all wallpapers from the list
 ### Wallpaper Options
 | Id | Option     | Output |
 | -- | ---------- | ------ |
