@@ -22,12 +22,12 @@ Add `~/.config/nicewallpaperd.json` if it does not currently exist and add the f
 		{
 			"file": "/foo/bar.png",
 			"option": "Zoom",
-			"clock_offset": "00:00:00"
+			"time": "00:00:00"
 		},
 		{
 			"file": "/baz/etc.png",
 			"option": "None",
-			"clock_offset": "02:00:00"
+			"time": "02:00:00"
 		}
 	]
 }
@@ -42,6 +42,8 @@ If the wallpaper option is left out or set to none, default_option will be used 
 ## Clock offset?
 nicedesktopd allows you to set an offset from midnight you want to wait before an image is allowed to be switched on, if the image is not allowed nicedesktopd will wait until it can. A low timeout value is recommended for this.
 
+`use_clock_intervals` needs to be set to true for this to work. Else clock offsets will be ignored.
+To set a clock offset, set the `time` variable in the wallpaper subsection for the single wallpaper.
 
 ### NOTICE
 If you are running a unity desktop, the desktop might go to a state where it shows the stock background, setting legacy to `true` tends to fix this.
